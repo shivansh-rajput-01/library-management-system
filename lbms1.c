@@ -27,6 +27,12 @@ void sortBooks(struct book * , int);
 void capitalString1(char *);
 
 
+void readBooks(struct book * , int);
+
+
+void writeBooks(struct book * , int);
+
+
 int main(){
 
     int choice;
@@ -35,9 +41,23 @@ int main(){
     int  noOfEnteries = 0;
     int i = 0;//for tracking upto what index structure is filled so that next time when function is called enteries are filled in next locations not overwriting the previous ones
     int n = 0;
+    int previous;
+    // Reads the number of enteries(books) if present in the file
+    FILE * fptr;
+    fptr = fopen("enteries.txt" , "r");
+    if(fptr == NULL){
+
+    }else{
+        fscanf(fptr , "%d" , &previous);
+    }
+    fclose(fptr);
+
+    n = i = noOfEnteries = previous;
 
         printf("====Library Management System====\n");
         printf("1.Add new books\n2.View the list of books\n3.Search for books by title or author\n4.Delete books from the system\n5.Sort the books based on different criteria (title, author, or publication year)\n");
+
+    readBooks(lib , previous);// read data from file into structure.
 
     while(repeat == 1){
         printf("Enter your choice:");
@@ -74,11 +94,19 @@ int main(){
         scanf("%d",&repeat);
     }
 
+    n = i = previous = noOfEnteries;
+
+    writeBooks(lib , noOfEnteries);// writes the readed data into 
+
+    fptr = fopen("enteries.txt" , "w");
+    fprintf(fptr ,"%d" , noOfEnteries);
+    fclose(fptr);
+
     printf("Thank you!");
 
     return 0;
 
-}
+} 
 
 void addBooks(struct book lib[], int * noOfEnteries,int * i){
     int enterAnother = 1;
@@ -162,9 +190,9 @@ void searchBooks(struct book * lib , int n , int noOfEnteries){
     if(a == 0){
 
         if(n == 0){
-            printf("No record found for title: %s",search);
+            printf("No record found for title: %s\n",search);
         }else if(n == 1){
-            printf("No record found for author name: %s",search);
+            printf("No record found for author name: %s\n",search);
         }
        
     }
@@ -234,7 +262,7 @@ int deleteBooks(struct book * lib , int noOfEnteries){
 
     }
     if(flag == 0){
-        printf("No book to be deleted is founded");
+        printf("No book to be deleted is founded\n");
     }else if(flag == 1){
         for(int var1 = 0 ; var1 < a ; var1++){
             for(int var2 = index[var1] ; var2 < noOfEnteries ; var2++){
@@ -246,6 +274,7 @@ int deleteBooks(struct book * lib , int noOfEnteries){
             }
             noOfEnteries--;
         }
+        printf("Book deleted successfully\n");
     }
 
     return noOfEnteries;
@@ -340,4 +369,61 @@ void capitalString1(char * compare){
         }
         i++;
     }
+} 
+
+void readBooks(struct book * lib , int previous){
+
+    FILE * read;
+    read = fopen("books.dat" , "rb");
+    //checks if the file is opened successfully or not
+    if(read == NULL){
+        perror("Error opening file");
+        return;
+    }
+
+    struct book Book;
+
+    int i = 0;
+    while(i < previous){
+        size_t result = fread(&Book , sizeof(Book) , 1 , read);
+        if (result != 1) {
+            if (feof(read)) {
+                printf("Reached end of file unexpectedly.\n");
+            } else if (ferror(read)) {
+                printf("Error reading file.\n");
+            }
+            break;  // Stop writing on error
+        }
+        lib[i] = Book;
+        i++;
+    }
+
+    fclose(read);
+
+} 
+
+void writeBooks(struct book * lib , int noOfEnteries){
+    FILE * write;
+    write = fopen("books.dat" , "wb");
+
+    if(write == NULL){
+        perror("Error opening file");
+        return;
+    }
+
+    int i = 0;
+
+    while(i < noOfEnteries){
+        size_t result = fwrite(&lib[i] , sizeof(lib[i]) , 1 , write);
+        if(result != 1){
+            if (ferror(write)) {
+                printf("Error writing the file.\n");
+            }
+            break;  // Stop writing on error
+        }
+        i++;
+    }
+
+    fclose(write);
+
 } 
